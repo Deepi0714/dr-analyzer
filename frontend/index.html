@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DR Analyzer — Indian Stock Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --gold:#D4A843;--gold-l:#F0C060;--gold-d:#A07828;
+  --amber:#E8A020;--ag:rgba(212,168,67,.15);
+  --bg:#0C0D0F;--bg2:#141618;--bg3:#1E2124;
+  --ln:#2A2E34;--ln2:#353A42;
+  --t1:#E8ECF0;--t2:#B0B8C4;--t3:#707A88;--t4:#454E5C;
+  --grn:#2DC97C;--red:#E85049;--blu:#4E9EE8;
+  --fh:'Syne',sans-serif;--fm:'DM Mono',monospace;--fb:'Inter',sans-serif;
+  --r:10px;--rl:16px;
+}
+[data-theme="light"]{
+  --bg:#F0F2F5;--bg2:#FFFFFF;--bg3:#E8EAEE;
+  --ln:#D4D8DF;--ln2:#C4C8D0;
+  --t1:#1A1E28;--t2:#3A4050;--t3:#6B7480;--t4:#A0A8B4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--bg);color:var(--t1);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
+a{color:var(--gold);text-decoration:none}
+button{cursor:pointer;border:none;font-family:inherit;outline:none}
+input{font-family:inherit;outline:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--ln2);border-radius:4px}
+
+.hdr{position:sticky;top:0;z-index:100;background:rgba(12,13,15,.90);backdrop-filter:blur(20px);border-bottom:1px solid var(--ln);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px}
+[data-theme="light"] .hdr{background:rgba(255,255,255,.90)}
+.logo{font-family:var(--fh);font-size:1.45rem;font-weight:800;letter-spacing:-.03em;display:flex;align-items:center;gap:.45rem}
+.logo em{color:var(--gold);font-style:normal}
+.logo-b{font-size:.58rem;font-weight:700;letter-spacing:.12em;background:var(--ag);border:1px solid var(--gold-d);color:var(--gold);padding:2px 7px;border-radius:4px}
+.hdr-r{display:flex;align-items:center;gap:.9rem}
+.live{display:flex;align-items:center;gap:.35rem;font-size:.7rem;font-weight:700;color:var(--grn);letter-spacing:.06em}
+.live::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--grn);animation:blink 1.6s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.tbtn{width:34px;height:34px;border-radius:8px;background:var(--bg3);color:var(--t2);display:flex;align-items:center;justify-content:center;font-size:.95rem;transition:background .2s}
+.tbtn:hover{background:var(--ln2)}
+
+.tw{background:var(--bg2);border-bottom:1px solid var(--ln);overflow:hidden;height:36px;display:flex;align-items:center;border-top:1px solid var(--ln)}
+.ti-inner{display:flex;gap:2.5rem;white-space:nowrap;animation:tick 50s linear infinite;width:max-content}
+.ti-inner:hover{animation-play-state:paused}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{display:flex;align-items:center;gap:.4rem;font-size:.75rem}
+.ti-s{font-family:var(--fm);font-weight:500;color:var(--t2)}
+.ti-p{font-family:var(--fm);color:var(--t1)}
+.ti-c{font-family:var(--fm);font-size:.7rem}
+.up{color:var(--grn)}.dn{color:var(--red)}
+
+.hero{padding:3.5rem 2rem 2.5rem;text-align:center;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(212,168,67,.07),transparent)}
+.hero-h{font-family:var(--fh);font-size:clamp(1.9rem,5vw,3rem);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:.7rem}
+.hero-h span{color:var(--gold)}
+.hero-sub{color:var(--t3);font-size:.88rem;margin-bottom:2rem;max-width:500px;margin-inline:auto;line-height:1.6}
+
+.sw{position:relative;max-width:620px;margin:0 auto 1rem}
+.si{display:flex;background:var(--bg3);border:1.5px solid var(--ln2);border-radius:14px;transition:border-color .2s,box-shadow .2s;overflow:hidden}
+.si:focus-within{border-color:var(--gold);box-shadow:0 0 0 4px rgba(212,168,67,.1)}
+.si-ico{padding:0 1rem;display:flex;align-items:center;color:var(--t3);font-size:1.05rem}
+#inp{flex:1;padding:.85rem .25rem;background:transparent;border:none;color:var(--t1);font-size:.97rem;font-family:var(--fm);letter-spacing:.02em}
+#inp::placeholder{color:var(--t3);font-family:var(--fb);letter-spacing:0}
+.sbtn{margin:6px;padding:.6rem 1.3rem;background:linear-gradient(135deg,var(--gold),var(--amber));color:#080808;font-weight:700;font-size:.82rem;font-family:var(--fh);letter-spacing:.06em;border-radius:10px;transition:opacity .2s,transform .1s;white-space:nowrap}
+.sbtn:hover{opacity:.85}.sbtn:active{transform:scale(.97)}
+
+.ac{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg3);border:1px solid var(--ln2);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:200;display:none}
+.ac.open{display:block}
+.ac-row{padding:.65rem 1rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:background .15s}
+.ac-row:hover{background:var(--bg2)}
+.ac-n{font-size:.85rem;font-weight:500;color:var(--t1)}
+.ac-s{font-family:var(--fm);font-size:.72rem;color:var(--gold);background:var(--ag);padding:2px 7px;border-radius:5px}
+
+.chips{display:flex;gap:.45rem;flex-wrap:wrap;justify-content:center;margin-top:.8rem}
+.chip{padding:.28rem .8rem;border-radius:20px;font-size:.73rem;font-weight:600;letter-spacing:.04em;background:var(--bg3);border:1px solid var(--ln2);color:var(--t2);cursor:pointer;transition:all .18s;font-family:var(--fm)}
+.chip:hover{background:var(--ag);border-color:var(--gold-d);color:var(--gold)}
+
+.wrap{max-width:1360px;margin:0 auto;padding:0 1.5rem 5rem}
+
+.st{display:none;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1.25rem;text-align:center}
+.st.on{display:flex}
+.spin{width:50px;height:50px;border-radius:50%;border:3px solid var(--ln2);border-top-color:var(--gold);animation:rot .75s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+.sp-lbl{font-family:var(--fh);font-size:1.05rem;color:var(--gold)}
+.sp-sub{font-size:.8rem;color:var(--t3)}
+.e-ico{font-size:2.5rem}
+.e-msg{font-family:var(--fh);font-size:1.1rem;color:var(--red)}
+.e-sub{font-size:.83rem;color:var(--t3);max-width:420px}
+
+#rpt{display:none;padding-top:1.5rem}
+#rpt.on{display:block}
+
+.sec{margin-bottom:2rem}
+.sec-hd{display:flex;align-items:center;gap:.7rem;margin-bottom:1.2rem;padding-bottom:.7rem;border-bottom:1px solid var(--ln)}
+.sec-ico{width:32px;height:32px;border-radius:8px;background:var(--ag);border:1px solid var(--gold-d);display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.sec-t{font-family:var(--fh);font-size:1rem;font-weight:700;letter-spacing:.01em}
+.sec-s{font-size:.72rem;color:var(--t3);margin-top:.1rem}
+
+.co-hdr{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rl);padding:1.6rem;display:flex;flex-wrap:wrap;gap:1.25rem;align-items:flex-start;margin-bottom:1.25rem;position:relative;overflow:hidden}
+.co-hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--amber),transparent)}
+.co-l{flex:1;min-width:200px}
+.co-name{font-family:var(--fh);font-size:1.75rem;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.co-tags{display:flex;gap:.4rem;margin-top:.4rem;flex-wrap:wrap}
+.tag{font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:5px;letter-spacing:.05em}
+.tag-s{background:rgba(78,158,232,.12);color:var(--blu);border:1px solid rgba(78,158,232,.25)}
+.tag-e{background:var(--ag);color:var(--gold);border:1px solid var(--gold-d)}
+.tag-i{background:rgba(255,255,255,.04);color:var(--t3);border:1px solid var(--ln2)}
+.co-meta{margin-top:.65rem;font-size:.78rem;color:var(--t3)}
+.co-r{text-align:right}
+.co-price{font-family:var(--fm);font-size:2.3rem;font-weight:500;letter-spacing:-.02em;line-height:1}
+.co-cur{font-size:.95rem;color:var(--t3);margin-right:.15rem}
+.co-chg{font-family:var(--fm);font-size:.9rem;margin-top:.25rem;font-weight:500}
+.co-ohlc{font-size:.7rem;color:var(--t3);margin-top:.4rem}
+
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:.65rem;margin-bottom:1.25rem}
+.card{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--r);padding:.95rem 1rem;transition:border-color .2s,transform .18s}
+.card:hover{border-color:var(--gold-d);transform:translateY(-2px)}
+.c-lbl{font-size:.66rem;font-weight:700;color:var(--t3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem}
+.c-val{font-family:var(--fm);font-size:1rem;font-weight:500;color:var(--t1)}
+.c-sub{font-size:.68rem;color:var(--t4);margin-top:.18rem}
+
+.cg2{display:grid;grid-template-columns:3fr 2fr;gap:1rem;margin-bottom:1.25rem}
+@media(max-width:860px){.cg2{grid-template-columns:1fr}}
+.cc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rl);padding:1.1rem}
+.cc-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
+.cc-t{font-family:var(--fh);font-size:.88rem;font-weight:700}
+.rtabs{display:flex;gap:.25rem}
+.rtab{padding:.22rem .55rem;border-radius:5px;font-size:.68rem;font-weight:700;letter-spacing:.04em;font-family:var(--fm);background:var(--bg3);color:var(--t3);transition:all .15s;border:1px solid transparent}
+.rtab.on{background:var(--ag);color:var(--gold);border-color:var(--gold-d)}
+.rtab:hover:not(.on){background:var(--ln)}
+.cv{position:relative;height:210px}
+
+.rg{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:.65rem}
+.rc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--r);padding:.95rem 1.1rem}
+.rc-l{font-size:.68rem;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:.3rem}
+.rc-v{font-family:var(--fm);font-size:1.35rem;font-weight:500;margin:.2rem 0}
+.rc-b{height:4px;background:var(--ln);border-radius:2px;margin-top:.35rem}
+.rc-f{height:4px;border-radius:2px}
+.rc-bn{font-size:.66rem;color:var(--t4);margin-top:.28rem}
+
+.table-w{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rl);overflow:hidden;margin-bottom:1rem}
+.ft{width:100%;border-collapse:collapse}
+.ft th{padding:.7rem 1rem;font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);background:var(--bg3);text-align:right;border-bottom:1px solid var(--ln)}
+.ft th:first-child{text-align:left}
+.ft td{padding:.72rem 1rem;font-family:var(--fm);font-size:.8rem;color:var(--t2);text-align:right;border-bottom:1px solid var(--ln)}
+.ft td:first-child{text-align:left;color:var(--t3);font-family:var(--fb);font-size:.78rem}
+.ft tr:last-child td{border-bottom:none}
+.ft tr:hover td{background:rgba(255,255,255,.015)}
+
+.cfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.65rem;margin-bottom:1rem}
+.cfc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--r);padding:1rem 1.15rem}
+.cfc-l{font-size:.68rem;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+.cfc-v{font-family:var(--fm);font-size:1.2rem}
+.cfc-n{font-size:.68rem;color:var(--t4);margin-top:.28rem}
+
+.vg{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:.65rem}
+.ng{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.65rem}
+.nc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--r);padding:.95rem;transition:border-color .2s,transform .18s}
+.nc:hover{border-color:var(--gold-d);transform:translateY(-2px)}
+.nc-pub{font-size:.66rem;color:var(--gold);font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:.35rem}
+.nc-title{font-size:.8rem;line-height:1.5;color:var(--t1);margin-bottom:.4rem}
+.nc-date{font-size:.68rem;color:var(--t4);font-family:var(--fm)}
+
+.rkg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.65rem}
+.rkc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--r);padding:1rem 1.15rem;border-left:3px solid}
+.rh{border-left-color:var(--red)}.rm{border-left-color:var(--amber)}.rl{border-left-color:var(--grn)}
+.rk-t{font-size:.68rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;margin-bottom:.35rem}
+.rh .rk-t{color:var(--red)}.rm .rk-t{color:var(--amber)}.rl .rk-t{color:var(--grn)}
+.rk-x{font-size:.8rem;color:var(--t2);line-height:1.6}
+
+.abar{display:flex;gap:.25rem;height:8px;border-radius:4px;overflow:hidden;margin:.45rem 0 .3rem}
+.ab-b{background:var(--grn)}.ab-h{background:var(--gold)}.ab-s{background:var(--red)}
+.ptg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem;text-align:center;margin:.6rem 0}
+.ptg-c{background:var(--bg3);border-radius:7px;padding:.5rem}
+.ptg-l{font-size:.63rem;color:var(--t3);margin-bottom:.2rem}
+.ptg-v{font-family:var(--fm);font-size:.88rem}
+.ptg-m{background:var(--ag);border:1px solid var(--gold-d)}
+.ptg-m .ptg-l{color:var(--gold)}.ptg-m .ptg-v{color:var(--gold)}
+
+.vc{background:var(--bg2);border:1px solid var(--ln);border-radius:var(--rl);padding:2rem;position:relative;overflow:hidden}
+.vc::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 55% 80% at 0% 50%,rgba(212,168,67,.05),transparent);pointer-events:none}
+.vbadge{display:inline-block;font-family:var(--fh);font-size:1.9rem;font-weight:800;letter-spacing:.05em;padding:.4rem 1.4rem;border-radius:10px;margin-bottom:.9rem}
+.vBUY{background:rgba(45,201,124,.12);color:var(--grn);border:2px solid rgba(45,201,124,.35)}
+.vHOLD{background:rgba(212,168,67,.12);color:var(--gold);border:2px solid rgba(212,168,67,.35)}
+.vAVOID{background:rgba(232,80,73,.12);color:var(--red);border:2px solid rgba(232,80,73,.35)}
+.vtxt{font-size:.9rem;line-height:1.75;color:var(--t2);max-width:680px}
+.vmeta{display:flex;gap:1.75rem;margin-top:1.25rem;flex-wrap:wrap}
+.vm-l{font-size:.66rem;color:var(--t4);text-transform:uppercase;letter-spacing:.09em}
+.vm-v{font-size:.88rem;font-weight:600;margin-top:.18rem}
+
+.rpc{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+@media(max-width:640px){.rpc{grid-template-columns:1fr}}
+
+.disc{text-align:center;font-size:.72rem;color:var(--t4);padding:2rem;border-top:1px solid var(--ln);line-height:1.65;margin-top:2rem}
+.disc strong{color:var(--t3)}
+
+@media(max-width:640px){
+  .hdr{padding:0 1rem}
+  .hero{padding:2rem 1rem 1.5rem}
+  .wrap{padding:0 1rem 3rem}
+  .co-name{font-size:1.3rem}
+  .co-price{font-size:1.75rem}
+  .cg{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="logo"><em>DR</em> Analyzer <span class="logo-b">INDIA</span></div>
+  <div class="hdr-r">
+    <div class="live">LIVE</div>
+    <button class="tbtn" id="tbtn">🌙</button>
+  </div>
+</header>
+
+<div class="tw">
+  <div class="ti-inner" id="ticker">
+    <span class="ti"><span class="ti-s">Loading market data...</span></span>
+  </div>
+</div>
+
+<section class="hero">
+  <h1 class="hero-h">Intelligent <span>Stock Analysis</span><br/>for Indian Markets</h1>
+  <p class="hero-sub">Live fundamental research for any NSE or BSE listed company.</p>
+  <div class="sw">
+    <div class="si">
+      <div class="si-ico">🔍</div>
+      <input id="inp" type="text" placeholder="Search symbol or name — RELIANCE, TCS, HDFCBANK..." autocomplete="off"/>
+      <button class="sbtn" id="sbtn">ANALYZE</button>
+    </div>
+    <div class="ac" id="ac"></div>
+  </div>
+  <div class="chips">
+    <button class="chip" data-s="RELIANCE">RELIANCE</button>
+    <button class="chip" data-s="TCS">TCS</button>
+    <button class="chip" data-s="HDFCBANK">HDFCBANK</button>
+    <button class="chip" data-s="INFY">INFY</button>
+    <button class="chip" data-s="ICICIBANK">ICICIBANK</button>
+    <button class="chip" data-s="SBIN">SBIN</button>
+    <button class="chip" data-s="BAJFINANCE">BAJFINANCE</button>
+    <button class="chip" data-s="WIPRO">WIPRO</button>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="st" id="stL"><div class="spin"></div><div><div class="sp-lbl" id="spLbl">Fetching market data...</div><div class="sp-sub">Connecting to live data sources</div></div></div>
+  <div class="st" id="stE"><div class="e-ico">⚠️</div><div class="e-msg" id="eMsg">Stock data not available</div><div class="e-sub">Try a different symbol, e.g. RELIANCE, TCS, HDFCBANK, INFY</div></div>
+
+  <div id="rpt">
+    <div id="coHdr"></div>
+    <div id="snapCards"></div>
+
+    <div class="cg2" id="chartRow" style="display:none">
+      <div class="cc">
+        <div class="cc-hd">
+          <div class="cc-t">📈 Price History</div>
+          <div class="rtabs" id="rtabs">
+            <button class="rtab on" data-r="1mo">1M</button>
+            <button class="rtab" data-r="3mo">3M</button>
+            <button class="rtab" data-r="6mo">6M</button>
+            <button class="rtab" data-r="1y">1Y</button>
+            <button class="rtab" data-r="3y">3Y</button>
+            <button class="rtab" data-r="5y">5Y</button>
+          </div>
+        </div>
+        <div class="cv"><canvas id="pchart"></canvas></div>
+      </div>
+      <div class="cc">
+        <div class="cc-hd"><div class="cc-t">🎯 Analyst Targets</div></div>
+        <div id="analystBox"></div>
+      </div>
+    </div>
+
+    <div class="sec" id="finSec" style="display:none">
+      <div class="sec-hd"><div class="sec-ico">💰</div><div><div class="sec-t">Revenue & Profit Analysis</div><div class="sec-s">Annual financials — last 4 years</div></div></div>
+      <div class="rpc">
+        <div class="cc"><div class="cc-hd"><div class="cc-t">📊 Revenue (₹ Cr)</div></div><div class="cv"><canvas id="rchart"></canvas></div></div>
+        <div class="cc"><div class="cc-hd"><div class="cc-t">📈 Net Profit (₹ Cr)</div></div><div class="cv"><canvas id="nchart"></canvas></div></div>
+      </div>
+      <div class="table-w" id="incTbl"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd"><div class="sec-ico">📐</div><div><div class="sec-t">Profitability Ratios</div><div class="sec-s">Returns, margins & efficiency</div></div></div>
+      <div class="rg" id="ratioGrid"></div>
+    </div>
+
+    <div class="sec" id="balSec" style="display:none">
+      <div class="sec-hd"><div class="sec-ico">⚖️</div><div><div class="sec-t">Balance Sheet Strength</div><div class="sec-s">Debt, equity & financial stability</div></div></div>
+      <div id="balBox"></div>
+    </div>
+
+    <div class="sec" id="cfSec" style="display:none">
+      <div class="sec-hd"><div class="sec-ico">💸</div><div><div class="sec-t">Cash Flow Analysis</div><div class="sec-s">Operating, investing & free cash flows</div></div></div>
+      <div id="cfBox"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd"><div class="sec-ico">🏷️</div><div><div class="sec-t">Valuation Analysis</div><div class="sec-s">Is the stock fairly priced?</div></div></div>
+      <div class="vg" id="valGrid"></div>
+    </div>
+
+    <div class="sec" id="newsSec" style="display:none">
+      <div class="sec-hd"><div class="sec-ico">📰</div><div><div class="sec-t">Latest News & Developments</div><div class="sec-s">Recent updates affecting the stock</div></div></div>
+      <div class="ng" id="newsGrid"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd"><div class="sec-ico">⚡</div><div><div class="sec-t">Risk Factors</div><div class="sec-s">Key risks to consider before investing</div></div></div>
+      <div class="rkg" id="riskGrid"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd"><div class="sec-ico">🎯</div><div><div class="sec-t">Final Investment Verdict</div><div class="sec-s">Algorithmic scoring of fundamentals</div></div></div>
+      <div id="verdictBox"></div>
+    </div>
+
+    <div class="disc">
+     <strong>⚠️ Disclaimer:</strong> Not financial advice. For educational purposes only.<br/>
+      DR Analyzer fetches data from Yahoo Finance public APIs. Prices may be delayed up to 15 minutes.
+      Always consult a SEBI-registered investment advisor before making investment decisions.
+    </div>
+  </div>
+</div>
+
+<script>
+const API='';
+let sym='';
+const CH={};
+
+// Theme
+document.getElementById('tbtn').addEventListener('click',()=>{
+  const d=document.documentElement,dk=d.dataset.theme==='dark';
+  d.dataset.theme=dk?'light':'dark';
+  document.getElementById('tbtn').textContent=dk?'☀️':'🌙';
+  Object.values(CH).forEach(c=>c&&applyTheme(c));
+});
+function applyTheme(c){
+  const dk=document.documentElement.dataset.theme==='dark';
+  const gc=dk?'rgba(255,255,255,.04)':'rgba(0,0,0,.05)';
+  const tc=dk?'#707A88':'#6B7480';
+  ['x','y'].forEach(ax=>{if(c.options.scales?.[ax]){c.options.scales[ax].grid.color=gc;c.options.scales[ax].ticks.color=tc;}});
+  c.update();
+}
+function cDef(){
+  const dk=document.documentElement.dataset.theme==='dark';
+  return{gc:dk?'rgba(255,255,255,.04)':'rgba(0,0,0,.05)',tc:dk?'#707A88':'#6B7480'};
+}
+
+// Ticker
+async function loadTicker(){
+  try{
+    const d=await xget('/api/trending');
+    if(!d.success||!d.data.length)return;
+    const items=[...d.data,...d.data];
+    document.getElementById('ticker').innerHTML=items.map(s=>{
+      const u=s.change>=0;
+      return `<span class="ti"><span class="ti-s">${s.symbol.replace('.NS','')}</span><span class="ti-p">₹${n2(s.price)}</span><span class="ti-c ${u?'up':'dn'}">${u?'▲':'▼'}${Math.abs(s.change||0).toFixed(2)}%</span></span>`;
+    }).join('');
+  }catch(e){}
+}
+loadTicker();setInterval(loadTicker,60000);
+
+// Autocomplete
+const inp=document.getElementById('inp'),acBox=document.getElementById('ac');
+let acT;
+inp.addEventListener('input',()=>{
+  clearTimeout(acT);
+  acT=setTimeout(async()=>{
+    const q=inp.value.trim();
+    if(q.length<2){acBox.classList.remove('open');return;}
+    try{
+      const d=await xget(`/api/search?q=${encodeURIComponent(q)}`);
+      if(!d.data?.length){acBox.classList.remove('open');return;}
+      acBox.innerHTML=d.data.map(r=>`<div class="ac-row" data-s="${r.symbol.replace('.NS','').replace('.BO','')}"><span class="ac-n">${r.name}</span><span class="ac-s">${r.symbol}</span></div>`).join('');
+      acBox.classList.add('open');
+      acBox.querySelectorAll('.ac-row').forEach(el=>el.addEventListener('click',()=>{analyze(el.dataset.s);acBox.classList.remove('open');}));
+    }catch(e){acBox.classList.remove('open');}
+  },280);
+});
+document.addEventListener('click',e=>{if(!e.target.closest('.sw'))acBox.classList.remove('open');});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){acBox.classList.remove('open');analyze(inp.value.trim());}});
+document.getElementById('sbtn').addEventListener('click',()=>analyze(inp.value.trim()));
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>analyze(c.dataset.s)));
+
+// Helpers
+async function xget(url){const r=await fetch(url);if(!r.ok)throw new Error(`HTTP ${r.status}`);return r.json();}
+const f2=n=>n==null?'N/A':(+n).toFixed(2);
+const f1=n=>n==null?'N/A':(+n).toFixed(1);
+const n2=n=>n==null?'--':(+n).toLocaleString('en-IN',{maximumFractionDigits:2});
+const pct=n=>n==null?'N/A':f2(n)+'%';
+const cur=n=>n==null?'N/A':'₹'+n2(n);
+function fCr(n){
+  if(n==null)return'N/A';
+  const c=n/1e7,a=Math.abs(c);
+  if(a>=1e5)return(c/1e5).toFixed(2)+' L Cr';
+  if(a>=1e3)return(c/1e3).toFixed(2)+' K Cr';
+  return c.toFixed(2)+' Cr';
+}
+function fMC(n){
+  if(!n)return'N/A';
+  if(n>=1e12)return'₹'+(n/1e12).toFixed(2)+' T';
+  if(n>=1e9)return'₹'+(n/1e9).toFixed(2)+' B';
+  if(n>=1e7)return'₹'+(n/1e7).toFixed(2)+' Cr';
+  return'₹'+n2(n);
+}
+function chgH(v,a){const u=v>=0,cl=u?'up':'dn';return`<span class="${cl}">${u?'+':''}${n2(a)} (${u?'+':''}${f2(v)}%)</span>`;}
+function rC(v,g=15,y=8){if(v==null)return'var(--t3)';return v>=g?'var(--grn)':v>=y?'var(--gold)':'var(--red)';}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+// State
+function setState(s,msg=''){
+  document.getElementById('stL').classList.toggle('on',s==='load');
+  document.getElementById('stE').classList.toggle('on',s==='err');
+  document.getElementById('rpt').classList.toggle('on',s==='rpt');
+  if(s==='err')document.getElementById('eMsg').textContent=msg||'Stock data not available';
+}
+function setLbl(t){document.getElementById('spLbl').textContent=t;}
+function destroyAll(){Object.keys(CH).forEach(k=>{CH[k]?.destroy();CH[k]=null;});}
+
+// Analyze
+async function analyze(raw){
+  if(!raw)return;
+  sym=raw.trim().toUpperCase();
+  inp.value=sym;
+  destroyAll();
+  setState('load');
+  setLbl('Connecting to market data...');
+  try{
+    setLbl('Fetching fundamentals...');
+    const[sRes,nRes]=await Promise.all([fetch(`${API}/api/stock/${sym}`),fetch(`${API}/api/news/${sym}`)]);
+    const sd=await sRes.json();
+    if(!sd.success)throw new Error(sd.error||'Symbol not found');
+    const d=sd.data;
+    const news=nRes.ok?((await nRes.json()).data||[]):[];
+    setLbl('Rendering report...');
+    await sleep(150);
+    buildCo(d);buildSnap(d);buildRatios(d);buildVal(d);buildRisks(d);buildVerdict(d);buildAnalyst(d);
+    if(d.incomeHistory?.length)buildFin(d);
+    if(d.balanceHistory?.length)buildBal(d);
+    if(d.cashflowHistory?.length)buildCF(d);
+    if(news.length)buildNews(news);
+    setState('rpt');
+    await sleep(80);
+    document.getElementById('chartRow').style.display='';
+    loadPChart('1mo');
+    if(d.incomeHistory?.length)buildRPCharts(d);
+  }catch(e){setState('err',e.message);}
+}
+
+// Company header
+function buildCo(d){
+  const u=d.changePercent>=0;
+  document.getElementById('coHdr').innerHTML=`
+    <div class="co-hdr">
+      <div class="co-l">
+        <div class="co-name">${d.name}</div>
+        <div class="co-tags">
+          ${d.sector&&d.sector!='N/A'?`<span class="tag tag-s">${d.sector}</span>`:''}
+          ${d.exchange?`<span class="tag tag-e">${d.exchange}</span>`:''}
+          ${d.industry&&d.industry!='N/A'?`<span class="tag tag-i">${d.industry}</span>`:''}
+        </div>
+        <div class="co-meta">
+          <span style="font-family:var(--fm)">${d.symbol}</span>
+          ${d.marketCap?` &nbsp;·&nbsp; MCap: <strong style="color:var(--t1)">${fMC(d.marketCap)}</strong>`:''}
+          ${d.beta!=null?` &nbsp;·&nbsp; β: <strong style="color:var(--t1)">${f2(d.beta)}</strong>`:''}
+        </div>
+      </div>
+      <div class="co-r">
+        <div class="co-price"><span class="co-cur">₹</span>${n2(d.currentPrice)}</div>
+        <div class="co-chg">${chgH(d.changePercent,d.change)} today</div>
+        <div class="co-ohlc">O: ${cur(d.open)} &nbsp;H: ${cur(d.dayHigh)} &nbsp;L: ${cur(d.dayLow)}</div>
+      </div>
+    </div>`;
+}
+
+// Snapshot cards
+function buildSnap(d){
+  const h52=d.week52High,l52=d.week52Low,cp=d.currentPrice;
+  const cs=[
+    {l:'52W High',v:h52?cur(h52):'N/A',s:cp&&h52?f2((cp/h52-1)*100)+'% from high':''},
+    {l:'52W Low', v:l52?cur(l52):'N/A',s:cp&&l52?f2((cp/l52-1)*100)+'% from low':''},
+    {l:'P/E (TTM)',v:d.peRatio?f2(d.peRatio):'N/A',s:d.forwardPE?'Fwd: '+f2(d.forwardPE):''},
+    {l:'P/B Ratio',v:d.pbRatio?f2(d.pbRatio):'N/A',s:d.bookValue?'BV ₹'+f2(d.bookValue):''},
+    {l:'EPS (TTM)',v:d.eps?'₹'+f2(d.eps):'N/A',s:d.forwardEps?'Fwd ₹'+f2(d.forwardEps):''},
+    {l:'Div. Yield',v:d.dividendYield?pct(d.dividendYield):'N/A',s:d.dividendRate?'₹'+f2(d.dividendRate)+'/sh':''},
+    {l:'Volume',v:d.volume?n2(d.volume):'N/A',s:d.avgVolume?'Avg '+n2(d.avgVolume):''},
+    {l:'Shares Out.',v:d.sharesOutstanding?fCr(d.sharesOutstanding):'N/A',s:''},
+    {l:'Institutional',v:d.institutionalHolding!=null?pct(d.institutionalHolding):'N/A',s:'FII + DII'},
+    {l:'Insider Hold.',v:d.insiderHolding!=null?pct(d.insiderHolding):'N/A',s:''},
+    {l:'Payout Ratio',v:d.payoutRatio!=null?pct(d.payoutRatio):'N/A',s:''},
+    {l:'Short Ratio', v:d.shortRatio!=null?f2(d.shortRatio):'N/A',s:''},
+  ];
+  document.getElementById('snapCards').innerHTML=`<div class="cg">${cs.map(c=>`<div class="card"><div class="c-lbl">${c.l}</div><div class="c-val">${c.v}</div>${c.s?`<div class="c-sub">${c.s}</div>`:''}</div>`).join('')}</div>`;
+}
+
+// Ratios
+function buildRatios(d){
+  const rs=[
+    {l:'Return on Equity',v:d.roe,b:'Healthy: >15%',g:15,y:8},
+    {l:'Return on Assets',v:d.roa,b:'Healthy: >8%',g:8,y:4},
+    {l:'Net Profit Margin',v:d.profitMargin,b:'Healthy: >10%',g:10,y:5},
+    {l:'Operating Margin',v:d.operatingMargin,b:'Healthy: >15%',g:15,y:8},
+    {l:'Gross Margin',v:d.grossMargin,b:'Healthy: >30%',g:30,y:15},
+    {l:'EBITDA Margin',v:d.ebitdaMargin,b:'Healthy: >20%',g:20,y:10},
+    {l:'Revenue Growth YoY',v:d.revenueGrowth,b:'Strong: >10%',g:10,y:5},
+    {l:'Earnings Growth YoY',v:d.earningsGrowth,b:'Strong: >12%',g:12,y:5},
+  ];
+  document.getElementById('ratioGrid').innerHTML=rs.map(r=>{
+    if(r.v==null)return`<div class="rc"><div class="rc-l">${r.l}</div><div class="rc-v" style="color:var(--t4)">N/A</div></div>`;
+    const col=rC(r.v,r.g,r.y),fill=Math.min(Math.max(r.v,0),r.g*2)/(r.g*2)*100;
+    return`<div class="rc"><div class="rc-l">${r.l}</div><div class="rc-v" style="color:${col}">${f2(r.v)}%</div><div class="rc-b"><div class="rc-f" style="width:${fill}%;background:${col}"></div></div><div class="rc-bn">${r.b}</div></div>`;
+  }).join('');
+}
+
+// Financials table
+function buildFin(d){
+  const h=d.incomeHistory.slice(-5);
+  document.getElementById('finSec').style.display='';
+  document.getElementById('incTbl').innerHTML=`<table class="ft"><thead><tr><th>Year</th><th>Revenue</th><th>Gross Profit</th><th>Operating Inc.</th><th>Net Profit</th><th>EPS</th></tr></thead><tbody>${
+    h.map((y,i)=>{
+      const gp=i>0&&h[i-1].revenue?(y.revenue-h[i-1].revenue)/Math.abs(h[i-1].revenue)*100:null;
+      const gs=gp!=null?` <span class="${gp>=0?'up':'dn'}" style="font-size:.68rem">(${gp>=0?'+':''}${f1(gp)}%)</span>`:'';
+      return`<tr><td>${y.date}</td><td>${fCr(y.revenue)}${gs}</td><td>${fCr(y.grossProfit)}</td><td>${fCr(y.operatingIncome)}</td><td style="color:${y.netIncome>=0?'var(--grn)':'var(--red)'}">${fCr(y.netIncome)}</td><td>${y.eps?'₹'+f2(y.eps):'N/A'}</td></tr>`;
+    }).join('')
+  }</tbody></table>`;
+}
+
+// Rev + Profit charts
+function buildRPCharts(d){
+  const h=d.incomeHistory.slice(-5);
+  const labels=h.map(y=>y.date.split('-')[0]);
+  const revs=h.map(y=>+((y.revenue||0)/1e9).toFixed(1));
+  const profs=h.map(y=>+((y.netIncome||0)/1e9).toFixed(1));
+  const cd=cDef();
+  function opts(cb){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:cb}}},scales:{x:{grid:{color:cd.gc},ticks:{color:cd.tc,font:{family:"'DM Mono'",size:10}}},y:{grid:{color:cd.gc},ticks:{color:cd.tc,font:{family:"'DM Mono'",size:10}}}}};}
+  CH.rev=new Chart(document.getElementById('rchart'),{type:'bar',data:{labels,datasets:[{data:revs,backgroundColor:'rgba(212,168,67,.65)',borderColor:'#D4A843',borderWidth:1,borderRadius:5}]},options:opts(ctx=>`₹${ctx.parsed.y} Bn`)});
+  CH.prof=new Chart(document.getElementById('nchart'),{type:'bar',data:{labels,datasets:[{data:profs,backgroundColor:profs.map(p=>p>=0?'rgba(40,212,122,.65)':'rgba(232,82,76,.65)'),borderColor:profs.map(p=>p>=0?'#28D47A':'#E8524C'),borderWidth:1,borderRadius:5}]},options:opts(ctx=>`₹${ctx.parsed.y} Bn`)});
+}
+
+// Balance sheet
+function buildBal(d){
+  const h=d.balanceHistory.slice(-4);
+  document.getElementById('balSec').style.display='';
+  const de=d.debtToEquity,deC=de==null?'var(--t3)':de<50?'var(--grn)':de<150?'var(--gold)':'var(--red)';
+  document.getElementById('balBox').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.65rem;margin-bottom:1rem">
+      <div class="card"><div class="c-lbl">Total Debt</div><div class="c-val">${d.totalDebt?'₹'+fCr(d.totalDebt):'N/A'}</div></div>
+      <div class="card"><div class="c-lbl">Total Cash</div><div class="c-val">${d.totalCash?'₹'+fCr(d.totalCash):'N/A'}</div></div>
+      <div class="card"><div class="c-lbl">Debt/Equity</div><div class="c-val" style="color:${deC}">${de!=null?f2(de/100)+'x':'N/A'}</div></div>
+      <div class="card"><div class="c-lbl">Current Ratio</div><div class="c-val" style="color:${d.currentRatio>1?'var(--grn)':'var(--red)'}">${d.currentRatio?f2(d.currentRatio):'N/A'}</div></div>
+      <div class="card"><div class="c-lbl">Quick Ratio</div><div class="c-val">${d.quickRatio?f2(d.quickRatio):'N/A'}</div></div>
+    </div>
+    <div class="table-w"><table class="ft"><thead><tr><th>Year</th><th>Total Assets</th><th>Total Liab.</th><th>Equity</th><th>Cash</th><th>Debt</th></tr></thead>
+    <tbody>${h.map(y=>`<tr><td>${y.date}</td><td>${fCr(y.totalAssets)}</td><td>${fCr(y.totalLiab)}</td><td>${fCr(y.totalStockholderEquity)}</td><td>${fCr(y.cash)}</td><td>${fCr(y.totalDebt)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+// Cash flow
+function buildCF(d){
+  const h=d.cashflowHistory.slice(-4),lt=h[h.length-1]||{};
+  document.getElementById('cfSec').style.display='';
+  document.getElementById('cfBox').innerHTML=`
+    <div class="cfg">
+      <div class="cfc"><div class="cfc-l">Operating Cash Flow</div><div class="cfc-v" style="color:${lt.operatingCF>0?'var(--grn)':'var(--red)'}">${lt.operatingCF!=null?'₹'+fCr(lt.operatingCF):'N/A'}</div><div class="cfc-n">Profit backed by cash: ${lt.operatingCF>0?'✅ Yes':'⚠️ Monitor'}</div></div>
+      <div class="cfc"><div class="cfc-l">Free Cash Flow</div><div class="cfc-v" style="color:${lt.freeCF>0?'var(--grn)':'var(--red)'}">${lt.freeCF!=null?'₹'+fCr(lt.freeCF):'N/A'}</div><div class="cfc-n">Operating CF − CapEx</div></div>
+      <div class="cfc"><div class="cfc-l">Capital Expenditure</div><div class="cfc-v">${lt.capex!=null?'₹'+fCr(Math.abs(lt.capex)/1e7):'N/A'}</div><div class="cfc-n">Investment in future growth</div></div>
+    </div>
+    <div class="table-w"><table class="ft"><thead><tr><th>Year</th><th>Operating CF</th><th>Investing CF</th><th>Financing CF</th><th>CapEx</th><th>Free CF</th></tr></thead>
+    <tbody>${h.map(y=>`<tr><td>${y.date}</td><td style="color:${y.operatingCF>0?'var(--grn)':'var(--red)'}">${fCr(y.operatingCF)}</td><td>${fCr(y.investingCF)}</td><td>${fCr(y.financingCF)}</td><td>${fCr(Math.abs(y.capex)/1e7)}</td><td style="color:${y.freeCF>0?'var(--grn)':'var(--red)'}">${fCr(y.freeCF)}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+// Valuation
+function buildVal(d){
+  const vs=[
+    {l:'P/E Ratio (TTM)',v:d.peRatio,n:d.peRatio?(d.peRatio<15?'🟢 Potentially undervalued':d.peRatio<30?'🟡 Fair range':'🔴 Premium valuation'):''},
+    {l:'Forward P/E',v:d.forwardPE,n:''},
+    {l:'P/B Ratio',v:d.pbRatio,n:d.pbRatio?(d.pbRatio<1.5?'🟢 Near book value':d.pbRatio<3?'🟡 Moderate':'🔴 Premium'):''},
+    {l:'PEG Ratio',v:d.pegRatio,n:d.pegRatio?(d.pegRatio<1?'🟢 Undervalued vs growth':d.pegRatio<2?'🟡 Fair':'🔴 Expensive'):''},
+    {l:'EV / EBITDA',v:d.evToEbitda,n:d.evToEbitda?(d.evToEbitda<10?'🟢 Attractive':d.evToEbitda<20?'🟡 Moderate':'🔴 Elevated'):''},
+    {l:'EV / Revenue',v:d.evToRevenue,n:''},
+    {l:'Price / Sales',v:d.priceToSales,n:''},
+    {l:'Enterprise Value',v:null,str:d.enterpriseValue?fMC(d.enterpriseValue):'N/A',n:''},
+  ];
+  document.getElementById('valGrid').innerHTML=vs.map(it=>`<div class="card"><div class="c-lbl">${it.l}</div><div class="c-val">${it.str!==undefined?it.str:(it.v!=null?f2(it.v):'N/A')}</div>${it.n?`<div class="c-sub" style="margin-top:.3rem">${it.n}</div>`:''}</div>`).join('');
+}
+
+// Analyst
+function buildAnalyst(d){
+  const rec=d.recommendations?.[0]||null;
+  const tot=rec?(rec.strongBuy+rec.buy+rec.hold+rec.sell+rec.strongSell):0;
+  const bp=tot?(rec.strongBuy+rec.buy)/tot*100:0;
+  const hp=tot?rec.hold/tot*100:0;
+  const sp=tot?(rec.sell+rec.strongSell)/tot*100:0;
+  const rm={buy:'var(--grn)','strong buy':'var(--grn)',hold:'var(--gold)',sell:'var(--red)','strong sell':'var(--red)'};
+  const rc=rm[d.analystRating?.toLowerCase()]||'var(--t2)';
+  const up=d.targetMeanPrice&&d.currentPrice?(d.targetMeanPrice-d.currentPrice)/d.currentPrice*100:null;
+  document.getElementById('analystBox').innerHTML=`
+    ${d.analystRating?`<div style="margin-bottom:.9rem"><div style="font-size:.72rem;color:var(--t3);margin-bottom:.25rem">${d.numberOfAnalysts||'?'} analysts covering</div><div style="font-family:var(--fh);font-size:1.25rem;font-weight:700;color:${rc};text-transform:uppercase">${d.analystRating}</div></div>`:''}
+    ${d.targetMeanPrice?`<div style="margin-bottom:.9rem"><div style="font-size:.7rem;color:var(--t3);margin-bottom:.4rem">Price Targets</div>
+    <div class="ptg">
+      <div class="ptg-c"><div class="ptg-l">LOW</div><div class="ptg-v">${cur(d.targetLowPrice)}</div></div>
+      <div class="ptg-c ptg-m"><div class="ptg-l">MEAN</div><div class="ptg-v">${cur(d.targetMeanPrice)}</div></div>
+      <div class="ptg-c"><div class="ptg-l">HIGH</div><div class="ptg-v">${cur(d.targetHighPrice)}</div></div>
+    </div>
+    ${up!=null?`<div style="text-align:center;font-size:.78rem;color:${up>=0?'var(--grn)':'var(--red)'}">${up>=0?'▲':'▼'} ${Math.abs(up).toFixed(1)}% potential ${up>=0?'upside':'downside'}</div>`:''}</div>`:'<div style="font-size:.82rem;color:var(--t4);margin-bottom:.9rem">No price targets available</div>'}
+    ${tot?`<div><div style="font-size:.7rem;color:var(--t3);margin-bottom:.4rem">Recommendations</div>
+    <div class="abar"><div class="ab-b" style="width:${bp}%"></div><div class="ab-h" style="width:${hp}%"></div><div class="ab-s" style="width:${sp}%"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:.68rem"><span class="up">Buy ${rec.strongBuy+rec.buy}</span><span style="color:var(--gold)">Hold ${rec.hold}</span><span class="dn">Sell ${rec.sell+rec.strongSell}</span></div></div>`:''}`;
+}
+
+// News
+function buildNews(news){
+  document.getElementById('newsSec').style.display='';
+  document.getElementById('newsGrid').innerHTML=news.map(n=>`<a href="${n.link}" target="_blank" rel="noopener noreferrer"><div class="nc"><div class="nc-pub">${n.publisher||'News'}</div><div class="nc-title">${n.title}</div><div class="nc-date">${n.publishedAt}</div></div></a>`).join('');
+}
+
+// Risks
+function buildRisks(d){
+  const rs=[];
+  const de=d.debtToEquity;
+  if(de!=null){
+    if(de>150)rs.push({l:'High Leverage Risk',c:'rh',t:`Debt/Equity of ${f2(de/100)}x is elevated. Company is sensitive to interest rate changes and credit market conditions.`});
+    else if(de>60)rs.push({l:'Moderate Debt',c:'rm',t:`Moderate leverage (D/E: ${f2(de/100)}x). Monitor interest coverage and debt repayment capacity.`});
+    else rs.push({l:'Low Leverage',c:'rl',t:`Conservative leverage (D/E: ${f2(de/100)}x) provides financial cushion and operational flexibility.`});
+  }
+  if(d.revenueGrowth!=null){
+    if(d.revenueGrowth<0)rs.push({l:'Revenue Decline',c:'rh',t:`Revenue contracting at ${f2(d.revenueGrowth)}% YoY. Negative growth signals significant business headwinds.`});
+    else if(d.revenueGrowth<5)rs.push({l:'Slow Growth Risk',c:'rm',t:`Revenue growing slowly at ${f2(d.revenueGrowth)}% YoY, which may limit future price appreciation.`});
+    else rs.push({l:'Growth Momentum',c:'rl',t:`Revenue growing at ${f2(d.revenueGrowth)}% YoY indicates healthy business momentum.`});
+  }
+  if(d.profitMargin!=null){
+    if(d.profitMargin<5)rs.push({l:'Thin Margins',c:'rh',t:`Profit margin of ${f2(d.profitMargin)}% leaves very little buffer against cost pressures or revenue decline.`});
+    else if(d.profitMargin<10)rs.push({l:'Moderate Margins',c:'rm',t:`Profit margin of ${f2(d.profitMargin)}% is below average. Watch for cost inflation or pricing pressure.`});
+    else rs.push({l:'Strong Profitability',c:'rl',t:`Solid profit margin of ${f2(d.profitMargin)}% indicates pricing power and operational efficiency.`});
+  }
+  if(d.beta!=null){
+    if(d.beta>1.4)rs.push({l:'High Volatility',c:'rh',t:`Beta of ${f2(d.beta)} means ~${f2((d.beta-1)*100)}% more volatile than Nifty 50. Expect sharp price swings.`});
+    else if(d.beta>1.1)rs.push({l:'Moderate Volatility',c:'rm',t:`Beta of ${f2(d.beta)} means slightly higher volatility than the broader market.`});
+    else rs.push({l:'Defensive Stock',c:'rl',t:`Low beta (${f2(d.beta)}) — tends to be more stable than the Nifty 50 index.`});
+  }
+  rs.push({l:'Macro Risk',c:'rm',t:'Indian equity markets remain sensitive to US Fed policy, FII flows, crude oil prices, rupee volatility, and global risk-off sentiment.'});
+  rs.push({l:'Regulatory Risk',c:'rm',t:'SEBI regulations, GST changes, sector-specific policy shifts, and RBI monetary decisions can materially impact business operations.'});
+  if(d.peRatio&&d.peRatio>40)rs.push({l:'Valuation Risk',c:'rh',t:`High P/E of ${f2(d.peRatio)}x prices in significant growth. Any earnings miss could trigger a sharp correction.`});
+  document.getElementById('riskGrid').innerHTML=rs.map(r=>`<div class="rkc ${r.c}"><div class="rk-t">${r.l}</div><div class="rk-x">${r.t}</div></div>`).join('');
+}
+
+// Verdict
+function buildVerdict(d){
+  let sc=0,notes=[];
+  if(d.roe>18){sc+=2;notes.push('Excellent ROE signals superior capital efficiency');}
+  else if(d.roe>12)sc+=1;
+  else if(d.roe!=null&&d.roe<8){sc-=1;notes.push('Low ROE suggests capital is not deployed efficiently');}
+  if(d.profitMargin>18){sc+=2;notes.push('Strong profit margins provide earnings resilience');}
+  else if(d.profitMargin>8)sc+=1;
+  else if(d.profitMargin!=null&&d.profitMargin<4){sc-=2;notes.push('Very thin margins are a significant concern');}
+  if(d.revenueGrowth>18){sc+=2;notes.push(`Strong revenue growth (${f2(d.revenueGrowth)}% YoY) signals robust momentum`);}
+  else if(d.revenueGrowth>8)sc+=1;
+  else if(d.revenueGrowth!=null&&d.revenueGrowth<0){sc-=2;notes.push('Declining revenue is a serious warning sign');}
+  if(d.debtToEquity!=null&&d.debtToEquity<40){sc+=1;notes.push('Low leverage provides financial flexibility');}
+  else if(d.debtToEquity>150){sc-=1;notes.push('High debt amplifies financial risk');}
+  if(d.peRatio&&d.peRatio<18){sc+=1;notes.push(`Reasonable valuation at P/E ${f2(d.peRatio)}x`);}
+  else if(d.peRatio&&d.peRatio>50){sc-=1;notes.push(`High P/E of ${f2(d.peRatio)}x prices in substantial growth`);}
+  if(d.freeCashflow>0){sc+=1;notes.push('Positive free cash flow confirms financial health');}
+  else if(d.freeCashflow!=null&&d.freeCashflow<0){sc-=1;notes.push('Negative free cash flow warrants monitoring');}
+  if(d.currentRatio>1.5)sc+=1;
+  else if(d.currentRatio!=null&&d.currentRatio<1){sc-=1;notes.push('Current ratio below 1 may signal short-term liquidity pressure');}
+  sc=Math.max(-5,Math.min(10,sc));
+  let verdict,horizon,risk,inv;
+  if(sc>=5){verdict='BUY';horizon='3–5 Years';risk='Medium';inv='Growth & Long-term investors';}
+  else if(sc>=2){verdict='HOLD';horizon='1–3 Years';risk='Medium';inv='Existing holders & Value investors';}
+  else{verdict='AVOID';horizon='Wait for better entry';risk='High';inv='Conservative & risk-averse investors';}
+  const up=d.targetMeanPrice&&d.currentPrice?(d.targetMeanPrice-d.currentPrice)/d.currentPrice*100:null;
+  const rCol=risk==='High'?'var(--red)':risk==='Medium'?'var(--gold)':'var(--grn)';
+  const vCol=verdict==='BUY'?'var(--grn)':verdict==='HOLD'?'var(--gold)':'var(--red)';
+  document.getElementById('verdictBox').innerHTML=`
+    <div class="vc">
+      <div class="vbadge v${verdict}">${verdict}</div>
+      <div class="vtxt">
+        ${notes.slice(0,4).join('. ')}${notes.length?'.':''}
+        ${up!=null?` Analyst consensus implies <strong style="color:${up>=0?'var(--grn)':'var(--red)'}">${up>=0?'▲':'▼'} ${Math.abs(up).toFixed(1)}% ${up>=0?'upside':'downside'}</strong> from current price.`:''}
+        <br/><br/><em style="color:var(--t3)">Generated by DR Analyzer's algorithmic scoring engine. Does not constitute professional financial advice.</em>
+      </div>
+      <div class="vmeta">
+        <div><div class="vm-l">Investment Horizon</div><div class="vm-v">${horizon}</div></div>
+        <div><div class="vm-l">Risk Level</div><div class="vm-v" style="color:${rCol}">${risk}</div></div>
+        <div><div class="vm-l">Best Suited For</div><div class="vm-v">${inv}</div></div>
+        <div><div class="vm-l">Fundamental Score</div><div class="vm-v" style="color:${vCol}">${sc>0?'+':''}${sc} / 10</div></div>
+      </div>
+    </div>`;
+}
+
+// Price chart
+async function loadPChart(range='1y'){
+  try{
+    const r=await fetch(`${API}/api/chart/${sym}?range=${range}`);
+    const d=await r.json();
+    if(!d.success||!d.data.length)return;
+    const pts=d.data,labels=pts.map(p=>p.date),prices=pts.map(p=>p.close);
+    const isUp=prices[prices.length-1]>=prices[0];
+    const lc=isUp?'#2DC97C':'#E85049',fc=isUp?'rgba(45,201,124,.07)':'rgba(232,80,73,.07)';
+    const cd=cDef();
+    CH.price?.destroy();
+    CH.price=new Chart(document.getElementById('pchart'),{
+      type:'line',
+      data:{labels,datasets:[{data:prices,borderColor:lc,borderWidth:2,backgroundColor:fc,fill:true,pointRadius:0,tension:0.35}]},
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`₹${ctx.parsed.y.toFixed(2)}`}}},
+        scales:{
+          x:{grid:{color:cd.gc},ticks:{color:cd.tc,maxTicksLimit:8,font:{family:"'DM Mono'",size:10}}},
+          y:{grid:{color:cd.gc},ticks:{color:cd.tc,font:{family:"'DM Mono'",size:10},callback:v=>'₹'+v.toLocaleString()}}
+        }
+      }
+    });
+  }catch(e){console.warn('Chart error:',e.message);}
+}
+
+document.getElementById('rtabs').addEventListener('click',e=>{
+  const btn=e.target.closest('.rtab');
+  if(!btn||!sym)return;
+  document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  loadPChart(btn.dataset.r);
+});
+</script>
+</body>
+</html>
