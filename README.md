@@ -22,3 +22,4 @@ dr-analyzer/
 Not financial advice. For educational purposes only.  
 Data sourced from Yahoo Finance public APIs. May be delayed 15 minutes.  
 Always consult a SEBI-registered advisor before investing.
+"# _dr_" 
